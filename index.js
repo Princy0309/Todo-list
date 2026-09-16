@@ -8,7 +8,7 @@ const SECRET = 'mysecretkey';
 app.use(express.json());
 
 function verifyToken(req, res, next){
-    const token = req.headers['authentication'];
+    const token = req.headers['authorization'];
 
     if(!token){
         return res.status(401).json({message : 'No token provided'})
@@ -22,6 +22,18 @@ function verifyToken(req, res, next){
         res.status(401).json({message: 'invalid token'})
     }
 }
+
+app.post('/login', (req, res) => {
+    const {username, password} = req.body;
+
+    const user = users.find(u=>u.username === username && u.password === password);
+
+    if(!user){
+        return res.status(401).json({message: 'invalid details'});
+    }
+    const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, SECRET);
+    res.json({ token });
+})
 
 app.get('/todos', verifyToken, (req, res)=> {
     if(req.user.role === 'admin'){
